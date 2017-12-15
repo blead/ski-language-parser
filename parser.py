@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
 import sys
+
+LITERALS = ''.join(chr(x) for x in range(128))
 
 def main():
     if len(sys.argv) == 0:
@@ -28,61 +31,46 @@ def match(token, matches, pos):
 
 def error(pos, token):
     raise Exception("Invalid character at position {}: {}".format(pos, token))
+    
+def isLiteral(token, literals):
+    return token != '`' and token != '~' and token in literals
 
 def exp(tokens, pos):
     if tokens[pos] == '`':
         pos = match(tokens[pos], ['`'], pos)
-        return fun(tokens, pos)
-    elif tokens[pos] == 'X':
-        return match(tokens[pos], ['X'], pos)
+        pos = fun(tokens, pos)
+        return arg(tokens, pos)
     else:
         error(pos, tokens[pos])
 def fun(tokens, pos):
-    if tokens[pos] == 'I' or tokens[pos] == 'W' or tokens[pos] == 'N':
-        return one(tokens, pos)
-    elif tokens[pos] == 'K' or tokens[pos] == 'O':
-        return two(tokens, pos)
+    if tokens[pos] == 'K':
+        return match(tokens[pos], ['K'], pos)
     elif tokens[pos] == 'S':
-        return thr(tokens, pos)
-    elif tokens[pos] == '`' or tokens[pos] == 'X':
+        return match(tokens[pos], ['S'], pos)
+    elif tokens[pos] == 'I':
+        return match(tokens[pos], ['I'], pos)
+    elif tokens[pos] == 'O':
+        return match(tokens[pos], ['O'], pos)
+    elif tokens[pos] == 'W':
+        return match(tokens[pos], ['W'], pos)
+    elif tokens[pos] == 'N':
+        return match(tokens[pos], ['N'], pos)
+    elif tokens[pos] == '`':
         return exp(tokens, pos)
     else:
         error(pos, tokens[pos])
-def one(tokens, pos):
-    if tokens[pos] == 'I':
-        pos = match(tokens[pos], ['I'], pos)
-        return fun(tokens, pos)
-    elif tokens[pos] == 'W':
-        pos = match(tokens[pos], ['W'], pos)
-        return fun(tokens, pos)
-    elif tokens[pos] == 'N':
-        pos = match(tokens[pos], ['N'], pos)
-        return fun(tokens, pos)
-    else:
-        error(pos, tokens[pos])
-def two(tokens, pos):
-    if tokens[pos] == 'K':
-        pos = match(tokens[pos], ['K'], pos)
-        pos = fun(tokens, pos)
-        return fun(tokens, pos)
-    elif tokens[pos] == 'O':
-        pos = match(tokens[pos], ['O'], pos)
-        pos = lit(tokens, pos)
-        return fun(tokens, pos)
-    else:
-        error(pos, tokens[pos])
-def thr(tokens, pos):
-    if tokens[pos] == 'S':
-        pos = match(tokens[pos], ['S'], pos)
-        pos = fun(tokens, pos)
-        pos = fun(tokens, pos)
-        return fun(tokens, pos)
+def arg(tokens, pos):
+    if tokens[pos] == '`':
+        return exp(tokens, pos)
+    elif tokens[pos] == '~':
+        return match(tokens[pos], ['~'], pos)
+    elif isLiteral(tokens[pos], LITERALS):
+        return lit(tokens, pos)
     else:
         error(pos, tokens[pos])
 def lit(tokens, pos):
-    literals = ''.join(chr(x) for x in range(128))
-    if tokens[pos] in literals:
-        return match(tokens[pos], literals, pos)
+    if isLiteral(tokens[pos], LITERALS):
+        return match(tokens[pos], LITERALS, pos)
     else:
         error(pos, tokens[pos])
 
